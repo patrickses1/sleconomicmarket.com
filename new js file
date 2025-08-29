@@ -1,0 +1,70 @@
+// Minimal SPA router + API client
+const $ = (sel, node=document) => node.querySelector(sel);
+const API = {
+token: localStorage.getItem('token') || null,
+setToken(t){ this.token = t; localStorage.setItem('token', t||''); renderAuth(); },
+async get(path){ const r = await fetch(path, { headers: this.token ? { Authorization: `Bearer ${this.token}` } : {} }); return r.json(); },
+async post(path, body){ const r = await fetch(path,{ method:'POST', headers:{ 'Content-Type':'application/json', ...(this.token?{Authorization:`Bearer ${this.token}`}:{}) }, body: JSON.stringify(body) }); return r.json(); },
+async postForm(path, form){ const r = await fetch(path,{ method:'POST', headers: this.token?{Authorization:`Bearer ${this.token}`}:{}, body: form }); return r.json(); }
+};
+
+
+// Load wallet numbers from server env (rendered in footer by server via DOM)
+window.addEventListener('DOMContentLoaded', () => {
+// fill numbers from meta endpoint
+fetch('/env.json').then(r=>r.json()).then(env => { $('#afr').textContent = env.AFRIMONEY_NUMBER || '—'; $('#orm').textContent = env.ORANGEMONEY_NUMBER || '—'; });
+});
+
+
+// Render auth area
+function renderAuth(){
+const el = $('#authArea');
+if (!API.token){
+el.innerHTML = `
+<input id="email" placeholder="email"/> <input id="pass" type="password" placeholder="password"/>
+<button id="loginBtn">Login</button>
+<button id="signupBtn">Sign up</button>
+<button id="googleBtn">Continue with Google</button>
+`;
+$('#loginBtn').onclick = async () => { const email=$('#email').value, password=$('#pass').value; const r=await API.post('/api/auth/login',{email,password}); if(r.token){ API.setToken(r.token); route(); } else alert(r.error||'Login failed'); };
+$('#signupBtn').onclick = async () => { const email=$('#email').value, password=$('#pass').value; const r=await API.post('/api/auth/signup',{email,password}); if(r.token){ API.setToken(r.token); route(); } else alert(r.error||'Signup failed'); };
+$('#googleBtn').onclick = async () => { const email=prompt('Google email (mock)'); const r=await API.post('/api/auth/google/mock',{googleId:'mock-'+Date.now(), email}); if(r.token){ API.setToken(r.token); route(); } };
+} else {
+el.innerHTML = `<button id="logoutBtn">Logout</button> <button id="reqLA">Request Limited Admin</button>`;
+$('#logoutBtn').onclick = () => { API.setToken(null); location.hash = '#/'; };
+$('#reqLA').onclick = async () => { const r=await API.post('/api/users/request-limited-admin',{}); alert('Limited admin status: '+(r.status||JSON.stringify(r))); };
+}
+}
+renderAuth();
+
+
+// Views
+const app = $('#app');
+const card = (t,d,b) => {
+const div = document.createElement('div'); div.className='card';
+div.innerHTML = `<span class="badge">${b||''}</span><h3>${t}</h3><p class="muted">${d||''}</p>`; return div;
+};
+
+
+async function viewGoods(){
+app.innerHTML = `<h2>Goods Feed</h2><div class="grid" id="grid"></div>`;
+const grid = $('#grid');
+const posts = await (await fetch('/api/posts?category=goods')).json();
+posts.forEach(p => grid.appendChild(card(p.title, p.description, p.boosted_months>0?`Boosted ${p.boosted_months}m`:'')));
+}
+
+
+function postForm({category, requireID=false, requirePayment=false, allowBoost=false}){
+const wrap = document.createElement('div');
+wrap.innerHTML = `
+<h2>Create ${category.charAt(0).toUpperCase()+category.slice(1)} Post</h2>
+<form id="pform">
+<div class="row">
+<div><label>Title<input name="title" required /></label></div>
+<div><label>Price (¢)<input name="price_cents" type="number" min="0" /></label></div>
+</div>
+<label>Description<textarea name="description"></textarea></label>
+${allowBoost?`<label>Boost Months (0-12)<input name="boosted_months" type="number" min="0" max="12" value="0"/></label>`:''}
+${requireID?`<label>Upload ID (Services only)<input name="id_file" type="file" accept="image/*,application/pdf" required></label>`:''}
+${requirePayment?`
+route();
