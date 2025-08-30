@@ -1,4 +1,4 @@
-// Minimal SPA router + API client
+ Minimal SPA router + API client
 const $ = (sel, node=document) => node.querySelector(sel);
 const API = {
 token: localStorage.getItem('token') || null,
@@ -9,14 +9,14 @@ async postForm(path, form){ const r = await fetch(path,{ method:'POST', headers:
 };
 
 
-// Load wallet numbers from server env (rendered in footer by server via DOM)
+Load wallet numbers from server env (rendered in footer by server via DOM)
 window.addEventListener('DOMContentLoaded', () => {
 // fill numbers from meta endpoint
 fetch('/env.json').then(r=>r.json()).then(env => { $('#afr').textContent = env.AFRIMONEY_NUMBER || '—'; $('#orm').textContent = env.ORANGEMONEY_NUMBER || '—'; });
 });
 
 
-// Render auth area
+Render auth area
 function renderAuth(){
 const el = $('#authArea');
 if (!API.token){
@@ -38,7 +38,8 @@ $('#reqLA').onclick = async () => { const r=await API.post('/api/users/request-l
 renderAuth();
 
 
-// Views
+
+Views
 const app = $('#app');
 const card = (t,d,b) => {
 const div = document.createElement('div'); div.className='card';
