@@ -11,7 +11,7 @@ async postForm(path, form){ const r = await fetch(path,{ method:'POST', headers:
 
 Load wallet numbers from server env (rendered in footer by server via DOM)
 window.addEventListener('DOMContentLoaded', () => {
-// fill numbers from meta endpoint
+fill numbers from meta endpoint
 fetch('/env.json').then(r=>r.json()).then(env => { $('#afr').textContent = env.AFRIMONEY_NUMBER || '—'; $('#orm').textContent = env.ORANGEMONEY_NUMBER || '—'; });
 });
 
