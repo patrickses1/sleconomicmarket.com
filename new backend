@@ -1,19 +1,19 @@
 import express from 'express';
 if (payment_method === 'mobile_money') {
-// must have prior uploaded screenshot (client uploads to /mobile-money/upload first)
+must have prior uploaded screenshot (client uploads to /mobile-money/upload first)
 if (!screenshotPath) return res.status(400).json({ error: 'Payment screenshot required for Mobile Money' });
 payment_screenshot = screenshotPath;
-// admin must approve -> stays pending
+ admin must approve -> stays pending
 is_paid = 0; status = 'pending';
 } else if (payment_method === 'stripe') {
-// client should pay via Stripe first; webhook would confirm in real app.
-// For MVP keep pending; you can manually activate via admin endpoint.
+client should pay via Stripe first; webhook would confirm in real app.
+ For MVP keep pending; you can manually activate via admin endpoint.
 is_paid = 0; status = 'pending';
 } else {
 return res.status(400).json({ error: 'payment_method required for Services/Jobs' });
 }
 } else {
-// Goods / Rentals — optional boosts
+ Goods / Rentals — optional boosts
 if (optionalBoostAllowed(category)) {
 const m = Number(boosted_months) || 0; if (m < 0 || m > 12) return res.status(400).json({ error: 'boosted_months 0..12' });
 }
@@ -32,7 +32,7 @@ res.json({ id: r.lastID, status, requires_id: !!requires_id });
 });
 
 
-// List posts by category; Goods feed shows active first
+ List posts by category; Goods feed shows active first
 app.get('/api/posts', async (req, res) => {
 const { category } = req.query;
 let rows;
@@ -42,7 +42,7 @@ res.json(rows);
 });
 
 
-// News posting: only limited_admin (approved) or admin
+News posting: only limited_admin (approved) or admin
 app.post('/api/news', auth(), async (req, res) => {
 if (!['limited_admin', 'admin'].includes(req.user.role)) return res.status(403).json({ error: 'News requires limited_admin or admin' });
 if (req.user.role === 'limited_admin' && req.user.limited_admin_status !== 'approved') return res.status(403).json({ error: 'Limited admin not approved yet' });
@@ -52,7 +52,7 @@ res.json({ id: r.lastID });
 });
 
 
-// Simple order endpoint to demonstrate 5% commission calc
+Simple order endpoint to demonstrate 5% commission calc
 app.post('/api/orders/quote', auth(), async (req, res) => {
 const { item_price_cents } = req.body;
 const commission = calcCommission(Number(item_price_cents||0));
@@ -60,7 +60,7 @@ res.json({ item_price_cents: Number(item_price_cents||0), commission_cents: comm
 });
 
 
-// Admin panel: list pending payments & posts
+ Admin panel: list pending payments & posts
 app.get('/api/admin/pending', auth(), requireRole('admin'), async (req, res) => {
 const payments = await db.all('SELECT id,title,user_id,payment_method,payment_screenshot FROM posts WHERE status="pending"');
 const limitedAdmins = await db.all("SELECT id,email,limited_admin_status FROM users WHERE limited_admin_status='pending'");
